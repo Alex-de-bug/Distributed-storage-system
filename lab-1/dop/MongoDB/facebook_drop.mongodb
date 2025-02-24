@@ -1,0 +1,3 @@
+db.getCollection('users').drop();
+db.getCollection('posts').drop();
+db.getCollection('messages').drop();

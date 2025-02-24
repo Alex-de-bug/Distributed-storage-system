@@ -1,0 +1,160 @@
+// Users Collection
+db.createCollection("users", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["firstName", "lastName", "email", "profilePicture"],
+      properties: {
+        firstName: { bsonType: "string" },
+        lastName: { bsonType: "string" },
+        email: { bsonType: "string" },
+        age: { bsonType: "int" },
+        password: { bsonType: "string" },
+        profilePicture: {
+          bsonType: "object",
+          required: ["type", "data", "size", "width", "height"],
+          properties: {
+            type: { enum: ["photo"] },
+            data: { bsonType: "binData" },
+            size: { bsonType: "long" },
+            width: { bsonType: "int" },
+            height: { bsonType: "int" },
+            thumbnailData: { bsonType: "binData" },
+            compressionLevel: { enum: ["low", "medium", "high"] }
+          }
+        },
+        subscribers: {
+          bsonType: "array",
+          items: {
+            bsonType: "object",
+            required: ["userId", "status", "subscribeTime"],
+            properties: {
+              userId: { bsonType: "objectId" },
+              status: { enum: ["approved", "reject", "pending"] },
+              subscribeTime: { bsonType: "date" }
+            }
+          }
+        }
+      }
+    }
+  }
+});
+
+// Posts Collection
+db.createCollection("posts", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["userId", "createdAt", "content"],
+      properties: {
+        userId: { bsonType: "objectId" },
+        createdAt: { bsonType: "date" },
+        updatedAt: { bsonType: ["date", "null"] },
+        visibility: { enum: ["public", "friends", "private"] },
+        isPinned: { bsonType: "bool" },
+        likesCount: { bsonType: "int", minimum: 0 },
+        content: {
+          bsonType: "array",
+          items: {
+            bsonType: "object",
+            required: ["type", "data", "size"],
+            properties: {
+              type: { enum: ["photo", "video", "sticker", "text"] },
+              data: { bsonType: "binData" },
+              size: { bsonType: "long" },
+              order: { bsonType: "int" },
+              width: { bsonType: ["int", "null"] },
+              height: { bsonType: ["int", "null"] },
+              thumbnailData: { bsonType: ["binData", "null"] },
+              compressionLevel: { enum: ["low", "medium", "high", null] },
+              duration: { bsonType: ["int", "null"] },
+              frameRate: { bsonType: ["double", "null"] },
+              resolution: { bsonType: ["string", "null"] },
+              bitrate: { bsonType: ["long", "null"] },
+              codec: { bsonType: ["string", "null"] },
+              stickerCode: { bsonType: ["string", "null"] },
+              category: { bsonType: ["string", "null"] },
+              isPremium: { bsonType: ["bool", "null"] },
+              cost: { bsonType: ["int", "null"] },
+              length: { bsonType: ["int", "null"] },
+              textContent: { bsonType: ["string", "null"] }
+            }
+          }
+        },
+        comments: {
+          bsonType: ["array", "null"],
+          items: {
+            bsonType: "object",
+            required: ["userId", "createdAt"],
+            properties: {
+              userId: { bsonType: "objectId" },
+              createdAt: { bsonType: "date" },
+              updatedAt: { bsonType: ["date", "null"] },
+              likesCount: { bsonType: "int", minimum: 0 },
+              parentCommentId: { bsonType: ["objectId", "null"] },
+              content: {
+                bsonType: "array",
+                items: {
+                  bsonType: "object",
+                  required: ["type", "data"],
+                  properties: {
+                    type: { enum: ["photo", "video", "sticker", "text"] },
+                    data: { bsonType: "binData" },
+                    order: { bsonType: "int" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+});
+
+// Messages Collection
+db.createCollection("messages", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["senderId", "receiverId", "createdAt", "content"],
+      properties: {
+        senderId: { bsonType: "objectId" },
+        receiverId: { bsonType: "objectId" },
+        createdAt: { bsonType: "date" },
+        isRead: { bsonType: "bool" },
+        isDelivered: { bsonType: "bool" },
+        parentMessageId: { bsonType: "objectId" },
+        content: {
+          bsonType: "array",
+          items: {
+            bsonType: "object",
+            required: ["type", "data"],
+            properties: {
+              type: { enum: ["photo", "video", "sticker", "text"] },
+              data: { bsonType: "binData" },
+              order: { bsonType: "int" }
+            }
+          }
+        }
+      }
+    }
+  }
+});
+
+// ...existing code...
+
+// Indexes for Query 1 (Top 10 popular content items)
+db.getCollection('posts').createIndex({ "createdAt": -1 });
+db.getCollection('posts').createIndex({ "content.type": 1 }); 
+db.getCollection('posts').createIndex({ "likesCount": -1, "createdAt": -1 });
+
+// Indexes for Query 2 (Content recommendations)
+db.getCollection('posts').createIndex({ "userId": 1, "likesCount": 1 });
+db.getCollection('users').createIndex({ "subscribers.userId": 1, "subscribers.status": 1 });
+
+// Indexes for Query 3 (Mutual subscriptions)
+db.getCollection('users').createIndex({ "subscribers.status": 1, "subscribers.userId": 1 }); 
+
+// Compound index for subscribers with status
+db.getCollection('users').createIndex({ "_id": 1, "subscribers.status": 1, "subscribers.userId": 1 });

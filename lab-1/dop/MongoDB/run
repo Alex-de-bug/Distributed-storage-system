@@ -1,0 +1,8 @@
+npm init -y
+npm install mongodb
+
+node facebook_filling.js
+
+-----------------------
+
+mongo
