@@ -149,3 +149,15 @@ CREATE TABLE CommentContent (
     FOREIGN KEY (comment_id) REFERENCES Comment(id) ON DELETE CASCADE,
     FOREIGN KEY (content_id) REFERENCES Content(id) ON DELETE CASCADE
 );
+
+CREATE INDEX idx_post_created_at ON Post(created_at);
+CREATE INDEX idx_post_likes ON Post(likes_count DESC);
+CREATE INDEX idx_postcontent_content_post ON PostContent(content_id, post_id);
+
+CREATE INDEX idx_user_subscribe_composite ON User_Subscribe(user_id, subscribe_id, status);
+CREATE INDEX idx_post_user_likes ON Post(user_id, likes_count);
+CREATE INDEX idx_content_media ON Content(media_type);
+CREATE INDEX idx_post_created ON Post(created_at DESC);
+
+CREATE INDEX idx_user_subscribe_mutual ON User_Subscribe(user_id, subscribe_id, status) 
+WHERE status = 'approved';
