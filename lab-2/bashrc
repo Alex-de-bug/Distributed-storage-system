@@ -1,0 +1,4 @@
+export PGDATA="$HOME/ksq56"
+export PGENCODING="WIN1251"
+export PGLOCALE="ru_RU.CP1251"
+export LC_ALL="ru_RU.CP1251"
