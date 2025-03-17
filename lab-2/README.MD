@@ -221,7 +221,7 @@ WHERE spcname IN ('yva58', 'yrp30', 'sgk31');
 посмотреть pg_toast_16413
 
 
- timescale db накатить на potgres и загрузить туда курсы валют и потестить разнизу между postgres и timescale db.
+ timescale db накатить на postgres и загрузить туда курсы валют и потестить разнизу между postgres и timescale db.
  простые запросы
  запросы с функциями
  explain analyze
