@@ -21,7 +21,8 @@ host    all             all             127.0.0.1/32            scram-sha-256
 # Запретить все остальные способы подключений
 host    all             all             0.0.0.0/0               reject
 
-изменили 
+изменили host    all             all             0.0.0.0/0               reject
+
 $PGDATA/postgresql.conf
 
 listen_addresses = 'localhost'  
@@ -156,7 +157,7 @@ psql -U postgres -c "CREATE TABLESPACE sgk31 LOCATION '$HOME/sgk31';"
 На основе template0 создать новую базу: fatrednews
 psql -U postgres -c "CREATE DATABASE fatrednews TEMPLATE template0;"
 
-psql -U postgres -c "CREATE ROLE fatreduser WITH LOGIN PASSWORD 'securepassword';"
+psql -U postgres -c "CREATE ROLE fatreduser WITH LOGIN PASSWORD 'changeMe';"
 psql -U postgres -c "GRANT CONNECT ON DATABASE fatrednews TO fatreduser;"
 psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE fatrednews TO fatreduser;"
 
@@ -165,6 +166,7 @@ psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE fatrednews TO fatreduser;"
 psql -U postgres -d fatrednews
 GRANT USAGE ON SCHEMA public TO fatreduser;
 GRANT CREATE ON SCHEMA public TO fatreduser;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO fatreduser;
 
 -- Таблица в табличном пространстве yva58
 CREATE TABLE table_yva58 (
@@ -183,6 +185,10 @@ CREATE TABLE table_sgk31 (
     id SERIAL PRIMARY KEY,
     data TEXT
 ) TABLESPACE sgk31;
+
+GRANT ALL ON TABLESPACE yva58 TO fatreduser;
+GRANT ALL ON TABLESPACE yrp30 TO fatreduser;
+GRANT ALL ON TABLESPACE sgk31 TO fatreduser;
 
 От имени новой роли (не администратора) произвести наполнение ВСЕХ созданных баз тестовыми наборами данных. ВСЕ табличные пространства должны использоваться по назначению.
 -- Наполнение таблицы table_yva58
