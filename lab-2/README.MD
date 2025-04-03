@@ -150,16 +150,16 @@ mkdir -p $HOME/yva58 $HOME/yrp30 $HOME/sgk31
 chown postgres:postgres $HOME/yva58 $HOME/yrp30 $HOME/sgk31
 chmod 700 $HOME/yva58 $HOME/yrp30 $HOME/sgk31
 
-psql -U postgres -c "CREATE TABLESPACE yva58 LOCATION '$HOME/yva58';"
-psql -U postgres -c "CREATE TABLESPACE yrp30 LOCATION '$HOME/yrp30';"
-psql -U postgres -c "CREATE TABLESPACE sgk31 LOCATION '$HOME/sgk31';"
+psql -p 9193 -U postgres -c "CREATE TABLESPACE yva58 LOCATION '$HOME/yva58';"
+psql -p 9193 -U postgres -c "CREATE TABLESPACE yrp30 LOCATION '$HOME/yrp30';"
+psql -p 9193 -U postgres -c "CREATE TABLESPACE sgk31 LOCATION '$HOME/sgk31';"
 
 На основе template0 создать новую базу: fatrednews
-psql -U postgres -c "CREATE DATABASE fatrednews TEMPLATE template0;"
+psql -p 9193 -U postgres -c "CREATE DATABASE fatrednews TEMPLATE template0;"
 
-psql -U postgres -c "CREATE ROLE fatreduser WITH LOGIN PASSWORD 'changeMe';"
-psql -U postgres -c "GRANT CONNECT ON DATABASE fatrednews TO fatreduser;"
-psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE fatrednews TO fatreduser;"
+psql -p 9193 -U postgres -c "CREATE ROLE fatreduser WITH LOGIN PASSWORD 'changeMe';"
+psql -p 9193 -U postgres -c "GRANT CONNECT ON DATABASE fatrednews TO fatreduser;"
+psql -p 9193 -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE fatrednews TO fatreduser;"
 
 Создать новую роль, предоставить необходимые права, разрешить подключение к базе.
 
