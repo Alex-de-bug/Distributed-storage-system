@@ -104,15 +104,3 @@ INSERT INTO employees (first_name, last_name, hire_date, department_id)
 VALUES ('Grace', 'Hopper', NOW()::DATE, (SELECT department_id FROM departments WHERE department_name = 'Marketing'));
 
 
-docker run --rm \
-  -v lab-4_pg_primary_data:/var/lib/postgresql/data \
-  --network lab-4_pg_network \
-  -e REPLICATOR_USER=replicator \
-  -e REPLICATOR_PASSWORD=replicator_password \
-  -e POSTGRES_DB=mydatabase \
-  postgres:15 \
-  bash -c 'chown -R postgres:postgres /var/lib/postgresql/data && \
-           gosu postgres pg_rewind \
-             --target-pgdata=/var/lib/postgresql/data \
-             --source-server="host=pg-replica port=5432 user=${REPLICATOR_USER} password=${REPLICATOR_PASSWORD} dbname=${POSTGRES_DB}" \
-             --progress'

@@ -2,60 +2,52 @@ version: '3.8'
 
 services:
   primary:
-    image: postgres:15 # Используйте нужную вам версию Postgres
-    container_name: pg-primary
-    restart: unless-stopped
+    image: primary
+    build: ./primary/
     ports:
-      - "5432:5432" # Пробрасываем порт основного сервера на хост
+      - "5432:5432"
     volumes:
-      - pg_primary_data:/var/lib/postgresql/data
-      - ./primary/postgresql.conf:/etc/postgresql/postgresql.conf # Перезаписываем конфиг
-      - ./primary/pg_hba.conf:/etc/postgresql/pg_hba.conf       # Перезаписываем HBA
-      - ./primary/init:/docker-entrypoint-initdb.d
+      - pg_primary_data:/var/lib/postgresql/15/main
+      # - ./primary/postgresql.conf:/etc/postgresql/15/main/postgresql.conf
+      # - ./primary/pg_hba.conf:/etc/postgresql/15/main/pg_hba.conf
+      - ./primary/backup.sh:/etc/backup.sh
     environment:
-      POSTGRES_DB: mydatabase
-      POSTGRES_USER: user # Пользователь для подключения приложений
-      POSTGRES_PASSWORD: password # Пароль пользователя приложений
-      REPLICATOR_USER: replicator # Имя пользователя для репликации
-      REPLICATOR_PASSWORD: replicator_password # Пароль пользователя репликации
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres 
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data
     command: >
       postgres
-      -c config_file=/etc/postgresql/postgresql.conf
-      -c hba_file=/etc/postgresql/pg_hba.conf
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - pg_network
 
-  replica:
-    image: postgres:15 # Та же версия, что и у primary
-    container_name: pg-replica
-    restart: unless-stopped
-    depends_on:
-      primary:
-        condition: service_healthy # Запускать реплику только после того, как primary будет готов
-    ports:
-      - "5433:5432" # Пробрасываем порт реплики на другой порт хоста (для read-only запросов)
-    volumes:
-      - pg_replica_data:/var/lib/postgresql/data
-      - ./replica/postgresql.conf:/etc/postgresql/postgresql.conf # Перезаписываем конфиг
-      - ./replica/init-replica.sh:/docker-entrypoint-initdb.d/init-replica.sh # Скрипт инициализации
-    environment:
-      POSTGRES_DB: mydatabase # Должны совпадать с primary для pg_basebackup
-      POSTGRES_USER: user # Должны совпадать с primary для pg_basebackup
-      POSTGRES_PASSWORD: password # Должны совпадать с primary для pg_basebackup
-      REPLICATOR_USER: ${REPLICATOR_USER:-replicator} # Берем из переменных окружения хоста или по умолчанию
-      REPLICATOR_PASSWORD: ${REPLICATOR_PASSWORD:-replicator_password} # Берем из переменных окружения хоста или по умолчанию
-      PGDATA: /var/lib/postgresql/data # Явно указываем PGDATA для скрипта
-    # entrypoint: ["/bin/bash", "-c"]
-    # Запускаем сначала скрипт инициализации, а потом стандартный entrypoint postgres
-    # Важно: стандартный entrypoint сам запустит postgres после выполнения скриптов из initdb.d
-    # command: postgres -c config_file=/etc/postgresql/postgresql.conf
-    networks:
-      - pg_network
+  # replica:
+  #   image: postgres:15 # Та же версия, что и у primary
+  #   container_name: pg-replica
+  #   restart: unless-stopped
+  #   depends_on:
+  #     primary:
+  #       condition: service_healthy # Запускать реплику только после того, как primary будет готов
+  #   ports:
+  #     - "5433:5432" # Пробрасываем порт реплики на другой порт хоста (для read-only запросов)
+  #   volumes:
+  #     - pg_replica_data:/var/lib/postgresql/data
+  #     - ./replica/pg_hba.conf:/etc/postgresql/pg_hba.conf # Перезаписываем HBA
+  #     - ./replica/postgresql.conf:/etc/postgresql/postgresql.conf # Перезаписываем конфиг
+  #     - ./replica/init-replica.sh:/docker-entrypoint-initdb.d/init-replica.sh # Скрипт инициализации
+  #   environment:
+  #     POSTGRES_DB: mydatabase # Должны совпадать с primary для pg_basebackup
+  #     POSTGRES_USER: user # Должны совпадать с primary для pg_basebackup
+  #     POSTGRES_PASSWORD: password # Должны совпадать с primary для pg_basebackup
+  #     REPLICATOR_USER: ${REPLICATOR_USER:-replicator} # Берем из переменных окружения хоста или по умолчанию
+  #     REPLICATOR_PASSWORD: ${REPLICATOR_PASSWORD:-replicator_password} # Берем из переменных окружения хоста или по умолчанию
+  #     PGDATA: /var/lib/postgresql/data # Явно указываем PGDATA для скрипта
+  #   # entrypoint: ["/bin/bash", "-c"]
+  #   # Запускаем сначала скрипт инициализации, а потом стандартный entrypoint postgres
+  #   # Важно: стандартный entrypoint сам запустит postgres после выполнения скриптов из initdb.d
+  #   # command: postgres -c config_file=/etc/postgresql/postgresql.conf
+  #   networks:
+  #     - pg_network
 
 volumes:
   pg_primary_data:
