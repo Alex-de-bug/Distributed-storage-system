@@ -7,9 +7,9 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pg_primary_data:/var/lib/postgresql/15/main
-      # - ./primary/postgresql.conf:/etc/postgresql/15/main/postgresql.conf
-      # - ./primary/pg_hba.conf:/etc/postgresql/15/main/pg_hba.conf
+      - pg_primary_data:/var/lib/postgresql/data
+      - ./primary/postgresql.conf:/etc/postgresql/data/postgresql.conf
+      - ./primary/pg_hba.conf:/etc/postgresql/data/pg_hba.conf
       - ./primary/backup.sh:/etc/backup.sh
     environment:
       POSTGRES_DB: postgres

@@ -12,6 +12,10 @@ if [ ! -f "$PGDATA/PG_VERSION" ]; then
     runuser -u postgres -- initdb --username="${POSTGRES_USER:-postgres}" --pwfile=/tmp/pgpass -D "$PGDATA" --auth=password
 
     rm /tmp/pgpass
+
+    cp /etc/postgresql/data/postgresql.conf "$PGDATA/postgresql.conf"
+    cp /etc/postgresql/data/pg_hba.conf "$PGDATA/pg_hba.conf"
+
     echo "Инициализация кластера завершена."
 else
     echo "База данных уже инициализирована, пропускаем initdb."
