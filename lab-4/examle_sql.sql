@@ -78,25 +78,13 @@ UPDATE employees
 SET last_name = 'Smith-Jones'
 WHERE first_name = 'Alice';
 
--- Проверка обновления
-SELECT * FROM employees WHERE first_name = 'Alice';
-
--- Пример удаления данных (еще одна операция записи)
--- Сначала создадим отдел и сотрудника для удаления
-INSERT INTO departments (department_name) VALUES ('Temporary');
-INSERT INTO employees (first_name, last_name, department_id) VALUES ('Delete', 'Me', (SELECT department_id FROM departments WHERE department_name = 'Temporary'));
-
--- Теперь удалим (сначала сотрудника из-за FK, потом отдел)
-DELETE FROM employees WHERE first_name = 'Delete';
-DELETE FROM departments WHERE department_name = 'Temporary';
 
 -- Финальная проверка
 SELECT * FROM departments ORDER BY department_id;
 SELECT * FROM employees ORDER BY employee_id;
 
 
-
-
+-- Добавление данных пока основной сервер лежит
 
 INSERT INTO departments (department_name) VALUES ('Marketing');
 

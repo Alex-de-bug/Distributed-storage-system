@@ -20,11 +20,11 @@ services:
       postgres
     networks:
       - pg_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready -U postgres"]
+    #   interval: 5s
+    #   timeout: 5s
+    #   retries: 5
 
   replica:
     image: replica
@@ -36,8 +36,8 @@ services:
       - "5433:5432"
     volumes:
       - pg_replica_data:/var/lib/postgresql/data
-      - ./primary/postgresql.conf:/etc/postgresql/data/postgresql.conf
-      - ./primary/pg_hba.conf:/etc/postgresql/data/pg_hba.conf
+      - ./replica/pg_hba.conf:/etc/postgresql/data/pg_hba.conf
+      - ./replica/postgresql.conf:/etc/postgresql/data/postgresql.conf
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
