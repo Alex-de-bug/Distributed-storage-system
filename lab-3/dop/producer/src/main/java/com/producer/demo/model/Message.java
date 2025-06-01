@@ -7,7 +7,6 @@ public class Message {
     private String author;
     private LocalDateTime timestamp;
 
-    // Конструкторы, геттеры, сеттеры
     public Message() {
         this.timestamp = LocalDateTime.now();
     }

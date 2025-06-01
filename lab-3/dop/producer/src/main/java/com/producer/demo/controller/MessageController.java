@@ -25,4 +25,5 @@ public class MessageController {
         producerService.sendMessage(message);
         return ResponseEntity.ok("Message sent to Pulsar successfully!");
     }
+
 }

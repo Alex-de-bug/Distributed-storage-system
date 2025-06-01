@@ -87,7 +87,7 @@ services:
     container_name: postgres-ru
     hostname: postgres-ru
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      - ./data/postgres/ru:/var/lib/postgresql/ru/data
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -102,7 +102,7 @@ services:
     container_name: postgres-eu
     hostname: postgres-eu
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      - ./data/postgres/eu:/var/lib/postgresql/eu/data
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
