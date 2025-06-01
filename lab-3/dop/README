@@ -1,0 +1,244 @@
+# Распределенная система хранения данных на основе Apache Pulsar
+
+## Описание проекта
+
+Это реализация распределенной системы хранения сообщений с использованием Apache Pulsar, Spring Boot и PostgreSQL. Система состоит из микросервисов producer и consumer, которые обрабатывают сообщения по регионам (RU/EU) с разделением данных по географическому принципу.
+
+## Архитектура системы
+
+### Компоненты
+
+- **Apache Pulsar** - брокер сообщений для асинхронной обработки
+- **ZooKeeper** - координация и конфигурация кластера
+- **BookKeeper** - хранение логов сообщений
+- **Producer** - Spring Boot приложение для отправки сообщений
+- **Consumer** - Spring Boot приложения для обработки сообщений по регионам
+- **PostgreSQL** - базы данных для каждого региона (RU/EU)
+- **Pulsar Manager** - веб-интерфейс для управления кластером
+
+### Схема работы
+Producer (8081)
+↓
+Apache Pulsar Broker (6650/8080)
+↓
+┌─ Topic: messages-ru → Consumer-RU-1 (8082) → PostgreSQL-RU (5430)
+└─ Topic: messages-eu → Consumer-EU-1 (8083) → PostgreSQL-EU (5431)
+
+
+## Технологический стек
+
+- **Java 17**
+- **Spring Boot 3.1.5**
+- **Apache Pulsar 3.0.2**
+- **PostgreSQL 14**
+- **Docker & Docker Compose**
+- **Maven**
+
+## Быстрый старт
+
+### Предварительные требования
+
+- Docker и Docker Compose
+- Java 17+
+- Maven 3.8+
+
+### Установка и запуск
+
+1. **Клонирование репозитория**
+```bash
+git clone <repository-url>
+cd lab-3/dop
+```
+
+2. **Первоначальная настройка системы**
+```bash
+chmod +x firstInit.sh
+./firstInit.sh
+```
+
+3. **Запуск всех сервисов**
+```bash
+docker-compose up -d
+```
+
+4. **Проверка статуса сервисов**
+```bash
+docker-compose ps
+```
+
+### Доступ к сервисам
+
+- **Producer API**: http://localhost:8081
+- **Consumer RU**: http://localhost:8082
+- **Consumer EU**: http://localhost:8083
+- **Pulsar Manager**: http://localhost:9527
+  - Логин: `apachepulsar`
+  - Пароль: `apachepulsar`
+- **PostgreSQL RU**: localhost:5430
+- **PostgreSQL EU**: localhost:5431
+
+## API Producer'а
+
+### Отправка сообщения
+
+```bash
+POST http://localhost:8081/api/messages
+Content-Type: application/json
+
+{
+  "content": "Привет, мир!",
+  "author": "Иван Иванов",
+  "region": "ru",
+  "timestamp": "2024-01-15T10:30:00"
+}
+```
+
+### Swagger UI
+
+Документация API доступна по адресу: http://localhost:8081/swagger-ui/index.html
+
+## Конфигурация
+
+### Переменные окружения
+
+#### Producer
+- `PULSAR_BROKER` - адрес Pulsar брокера
+- `PULSAR_TOPIC_RU` - топик для российского региона
+- `PULSAR_TOPIC_EU` - топик для европейского региона
+
+#### Consumer
+- `DATABASE_URL` - строка подключения к БД
+- `DATABASE_USERNAME` - имя пользователя БД
+- `DATABASE_PASSWORD` - пароль БД
+- `CONSUMER_REGION` - регион consumer'а (RU/EU)
+- `CONSUMER_INSTANCE_ID` - идентификатор экземпляра
+- `PULSAR_SERVICE_URL` - адрес Pulsar сервиса
+- `PULSAR_TOPIC` - топик для обработки
+
+## Разработка
+
+### Сборка проектов
+
+```bash
+# Producer
+cd producer
+./mvnw clean install
+
+# Consumer
+cd consumer
+./mvnw clean install
+```
+
+### Запуск в режиме разработки
+
+```bash
+# Запуск только инфраструктуры
+docker-compose up -d zookeeper bookie pulsar-broker postgres-ru postgres-eu
+
+# Запуск Producer локально
+cd producer
+./mvnw spring-boot:run
+
+# Запуск Consumer локально
+cd consumer
+CONSUMER_REGION=RU ./mvnw spring-boot:run
+```
+
+## Мониторинг и управление
+
+### Pulsar Manager
+
+- Веб-интерфейс для мониторинга топиков, подписок и статистики
+- Доступ: http://localhost:9527
+
+### Логи
+
+```bash
+# Просмотр логов всех сервисов
+docker-compose logs -f
+
+# Логи конкретного сервиса
+docker-compose logs -f producer
+docker-compose logs -f consumer-ru-1
+```
+
+## Устранение неполадок
+
+### Частые проблемы
+
+1. **Порты заняты**
+   - Убедитесь, что порты 5430, 5431, 6650, 8080-8083, 9527 свободны
+
+2. **Ошибки подключения к Pulsar**
+   - Проверьте статус broker'а: `docker-compose logs pulsar-broker`
+   - Дождитесь полной инициализации кластера (может занять 1-2 минуты)
+
+3. **Проблемы с БД**
+   - Проверьте статус PostgreSQL контейнеров
+   - Убедитесь в корректности переменных окружения
+
+### Очистка данных
+
+```bash
+# Остановка и удаление контейнеров
+docker-compose down
+
+# Удаление данных (ВНИМАНИЕ: удалит все данные!)
+sudo rm -rf ./data/*
+```
+
+
+I can see you're still getting the same NoClassDefFoundError for LiteWebJarsResourceResolver. The issue is that springdoc-openapi-starter-webmvc-ui version 2.8.5 is incompatible with Spring Boot 3.1.5.
+Looking at the error, Spring Boot 3.1.5 uses Spring Framework 6.0.13, but the LiteWebJarsResourceResolver class was only added in Spring Framework 6.2. The springdoc-openapi version 2.8.5 expects this newer Spring Framework version.
+Solution: Downgrade springdoc-openapi version
+You need to use a compatible springdoc-openapi version for Spring Boot 3.1.5. Here's the fix:
+Apply to pom.xml
+<dependency>
+    <groupId>org.springdoc</groupId>
+    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    <version>2.2.0</version> <!-- Changed from 2.8.5 to 2.2.0 -->
+</dependency>
+Compatibility Matrix
+For reference, here's the compatibility:
+Spring Boot 3.1.x → springdoc-openapi 2.2.x or 2.3.x
+Spring Boot 3.2.x → springdoc-openapi 2.3.x to 2.6.x
+Spring Boot 3.3.x+ → springdoc-openapi 2.8.x
+Alternative: Upgrade Spring Boot (if possible)
+If you can upgrade Spring Boot, you could instead update to a newer version:
+Apply to pom.xml
+.
+But since you just upgraded to Spring Boot 3.1.5, I recommend staying with Spring Boot 3.1.5 and downgrading springdoc-openapi to 2.2.0.
+After making the change, rebuild:
+Apply to README
+Run
+./mvnw clean install
+This should resolve the LiteWebJarsResourceResolver error and allow your application to start successfully.
+напиши readme на русском
+
+Я помогу вам написать README на русском языке для вашего проекта. Сначала давайте посмотрим на структуру проекта, чтобы понять, что именно описывать.
+Теперь я напишу README на русском языке для вашего проекта распределенной системы хранения с Apache Pulsar:
+Apply to README
+Producer (8081)
+↓
+Apache Pulsar Broker (6650/8080)
+↓
+┌─ Topic: messages-ru → Consumer-RU-1 (8082) → PostgreSQL-RU (5430)
+└─ Topic: messages-eu → Consumer-EU-1 (8083) → PostgreSQL-EU (5431)
+Apply to README
+.
+├── docker-compose.yml # Конфигурация Docker Compose
+├── firstInit.sh # Скрипт первоначальной настройки
+├── producer/ # Микросервис Producer
+│ ├── src/main/java/ # Исходный код Java
+│ ├── pom.xml # Maven конфигурация
+│ └── Dockerfile # Docker образ
+├── consumer/ # Микросервис Consumer
+│ ├── src/main/java/ # Исходный код Java
+│ ├── pom.xml # Maven конфигурация
+│ └── Dockerfile # Docker образ
+└── data/ # Данные сервисов (создается автоматически)
+
+
+## Лицензия
+
+Этот проект создан в учебных целях.
