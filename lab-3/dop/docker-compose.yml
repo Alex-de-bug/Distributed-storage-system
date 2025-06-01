@@ -61,7 +61,6 @@ services:
       retries: 5
     restart: always
     depends_on:
-      - zookeeper
       - bookie
     networks:
       - pulsar
@@ -82,6 +81,98 @@ services:
     volumes:
       - ./data/pulsarmanagerdata:/data
     restart: always
+
+  postgres-ru:
+    image: postgres:14
+    container_name: postgres-ru
+    hostname: postgres-ru
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5430:5432
+    networks:
+      - pulsar
+    restart: always
+
+  postgres-eu:
+    image: postgres:14
+    container_name: postgres-eu
+    hostname: postgres-eu
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5431:5432
+    networks:
+      - pulsar
+    restart: always
+
+  producer:
+    container_name: producer
+    hostname: producer
+    build: ./producer
+    ports:
+      - 8081:8081
+    depends_on:
+      - pulsar-broker
+    networks:
+      - pulsar
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - PULSAR_BROKER=pulsar://broker:6650
+      - PULSAR_TOPIC_RU=persistent://public/default/messages-ru
+      - PULSAR_TOPIC_EU=persistent://public/default/messages-eu
+    restart: always
+
+  consumer-ru-1:
+    container_name: consumer-ru-1
+    hostname: consumer-ru-1
+    build: ./consumer
+    ports:
+      - 8082:8082
+    depends_on:
+      - postgres-ru
+      - pulsar-broker
+    networks:
+      - pulsar
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DATABASE_URL=jdbc:postgresql://postgres-ru:5432/postgres
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=postgres
+      - CONSUMER_REGION=RU
+      - CONSUMER_INSTANCE_ID=1
+      - PULSAR_SERVICE_URL=pulsar://broker:6650
+      - PULSAR_TOPIC=persistent://public/default/messages-ru
+    restart: always
+    
+  consumer-eu-1:
+    container_name: consumer-eu-1
+    hostname: consumer-eu-1
+    build: ./consumer
+    ports:
+      - 8083:8082
+    depends_on:
+      - postgres-eu
+      - pulsar-broker
+    networks:
+      - pulsar
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DATABASE_URL=jdbc:postgresql://postgres-eu:5432/postgres
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=postgres
+      - CONSUMER_REGION=EU
+      - CONSUMER_INSTANCE_ID=1
+      - PULSAR_SERVICE_URL=pulsar://broker:6650
+      - PULSAR_TOPIC=persistent://public/default/messages-eu
+    restart: always
+
 
 networks:
   pulsar:
